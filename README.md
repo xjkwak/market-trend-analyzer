@@ -1,19 +1,15 @@
-# Multi-Tool Agent
+# Document Analysis Agent
 
-A Python-based intelligent agent built with Google's Agent Development Kit (ADK) that provides weather and time information for cities. This project demonstrates how to create a multi-tool agent that can handle multiple types of queries through a single interface.
+A Python-based intelligent agent built with Google's Agent Development Kit (ADK) that analyzes PDF documents from a local directory. This project demonstrates how to create an agent that can process and analyze text content from PDF files using advanced AI capabilities.
 
 ## Features
 
-- **Weather Information**: Get current weather reports for supported cities
-- **Time Information**: Retrieve current time in different timezones
-- **Multi-Tool Architecture**: Single agent with multiple specialized tools
-- **Error Handling**: Graceful handling of unsupported cities and edge cases
-- **Extensible Design**: Easy to add new tools and capabilities
-
-## Supported Cities
-
-Currently, the agent supports the following cities:
-- **New York**: Weather and timezone information
+- **PDF Document Analysis**: Automatically scans and processes PDF files from a local `docs/` directory
+- **Text Extraction**: Extracts and preprocesses text content from PDF documents
+- **Content Summarization**: Provides summaries and key insights from document content
+- **Smart Processing**: Handles large documents with intelligent truncation to stay within token limits
+- **Error Handling**: Graceful handling of file processing errors and edge cases
+- **Extensible Design**: Easy to add new document processing capabilities
 
 ## Project Structure
 
@@ -22,9 +18,16 @@ adk1/
 ├── app/
 │   └── multi_tool_agent/
 │       ├── __init__.py
-│       └── agent.py
-├── README.md
-└── .gitignore
+│       ├── agent.py
+│       └── docs/
+│           └── [PDF files to analyze]
+├── agents/
+│   └── social_scraper.py
+├── requirements.txt
+├── setup_openai.py
+├── test_document_analyzer.py
+├── CLAUDE.md
+└── README.md
 ```
 
 ## Installation
@@ -43,101 +46,134 @@ adk1/
 
 3. **Install dependencies**:
    ```bash
-   pip install google-adk
+   pip install -r requirements.txt
    ```
 
 ## Usage
 
 ### Basic Usage
 
-The agent is configured with two main tools:
+The agent is configured with one main tool:
 
-1. **Weather Tool** (`get_weather`): Retrieves weather information for supported cities
-2. **Time Tool** (`get_current_time`): Gets current time in specified timezones
+- **Document Analysis Tool** (`analyze_local_pdfs`): Scans the `docs/` directory for PDF files and analyzes their content
+
+### Setting Up Documents
+
+1. Create a `docs/` folder in the `app/multi_tool_agent/` directory
+2. Place PDF files you want to analyze in this folder
+3. The agent will automatically detect and process all PDF files
 
 ### Example Queries
 
 The agent can handle natural language queries such as:
-- "What's the weather in New York?"
-- "What time is it in New York?"
-- "Tell me about the weather and time in New York"
+- "Analyze the documents in the docs folder"
+- "What are the main topics in the PDF files?"
+- "Summarize the content of the documents"
+- "What key information can you find in the PDFs?"
 
 ### Agent Configuration
 
 The agent is configured with:
-- **Model**: `gemini-2.0-flash`
-- **Name**: `weather_time_agent`
-- **Description**: Agent to answer questions about the time and weather in a city
-- **Instruction**: Helpful agent for weather and time queries
+- **Model**: `openai/gpt-4o` (via LiteLLM)
+- **Name**: `document_analysis_agent`
+- **Description**: Agent to analyze text content from local PDF documents
+- **Instruction**: Analyzes PDF documents and provides summaries and insights
 
 ## API Reference
 
-### `get_weather(city: str) -> dict`
+### `analyze_local_pdfs() -> dict`
 
-Retrieves weather information for a specified city.
-
-**Parameters:**
-- `city` (str): The name of the city
+Analyzes all PDF files in the local `docs/` folder.
 
 **Returns:**
-- `dict`: Status and weather report or error message
+- `dict`: Status and documents data or error message
 
 **Example Response:**
 ```python
 {
     "status": "success",
-    "report": "The weather in New York is sunny with a temperature of 25 degrees Celsius (77 degrees Fahrenheit)."
+    "documents": [
+        {
+            "file_path": "/path/to/document.pdf",
+            "text": "extracted and processed text content...",
+            "total_pages": 15,
+            "pages_processed": 10,
+            "text_length": 12500,
+            "note": "Text was truncated to stay within token limits"
+        }
+    ],
+    "note": "Large PDFs were truncated to prevent token limit issues."
 }
 ```
 
-### `get_current_time(city: str) -> dict`
+## Processing Details
 
-Returns the current time in a specified city.
+### Text Extraction Limits
 
-**Parameters:**
-- `city` (str): The name of the city
+The agent implements several safeguards to handle large documents:
 
-**Returns:**
-- `dict`: Status and time report or error message
+- **Page Limit**: Processes maximum 10 pages per document
+- **Character Limit**: Maximum 5,000 characters per page
+- **Total Limit**: Maximum 15,000 characters per document
+- **Preprocessing**: Removes excessive whitespace and converts to lowercase
 
-**Example Response:**
-```python
-{
-    "status": "success", 
-    "report": "The current time in New York is 2024-01-15 14:30:25 EST-0500"
-}
-```
-
-## Development
-
-### Adding New Cities
-
-To add support for new cities:
-
-1. Update the `get_weather` function to include the new city
-2. Update the `get_current_time` function with the appropriate timezone identifier
-3. Test the new functionality
-
-### Adding New Tools
-
-To add new tools to the agent:
-
-1. Create a new function with appropriate docstrings
-2. Add the function to the `tools` list in the `root_agent` configuration
-3. Update the agent's description and instruction if needed
-
-## Error Handling
+### Error Handling
 
 The agent includes comprehensive error handling:
-- Unsupported cities return appropriate error messages
-- Invalid inputs are handled gracefully
+- Missing `docs/` directory returns appropriate error messages
+- File processing errors are captured and reported
+- Invalid PDF files are handled gracefully
 - All functions return consistent response formats
 
 ## Dependencies
 
 - `google-adk`: Google's Agent Development Kit
-- `datetime`: Python's datetime module for time handling
+- `litellm`: LiteLLM for model integration
+- `openai`: OpenAI API integration
+- `python-dotenv`: Environment variable management
+- `PyMuPDF`: PDF text extraction and processing
+- `datetime`: Python's datetime module
 - `zoneinfo`: Timezone information handling
+
+## Development
+
+### Adding New Document Types
+
+To add support for new document formats:
+
+1. Update the `analyze_local_pdfs` function to handle new file types
+2. Add appropriate text extraction libraries
+3. Test the new functionality
+
+### Adding New Analysis Tools
+
+To add new analysis capabilities:
+
+1. Create a new function with appropriate docstrings
+2. Add the function to the `tools` list in the `root_agent` configuration
+3. Update the agent's description and instruction if needed
+
+### Configuration
+
+The agent can be customized by modifying:
+- Model selection in the `LiteLlm` configuration
+- Processing limits in the `analyze_local_pdfs` function
+- Agent instructions and descriptions
+
+## How to run
+
+```
+cd market-trend-analyzer/app
+adk web
+```
+
+## Testing
+
+Run the test file to verify the agent functionality:
+
+```bash
+python test_document_analyzer.py
+```
 
 ## Contributing
 
@@ -154,3 +190,10 @@ The agent includes comprehensive error handling:
 ## Support
 
 For issues and questions, please open an issue in the repository.
+
+## Related Files
+
+- `agents/social_scraper.py`: Additional agent for social media scraping
+- `setup_openai.py`: OpenAI API configuration
+- `test_document_analyzer.py`: Test file for the document analyzer
+- `CLAUDE.md`: Additional documentation
