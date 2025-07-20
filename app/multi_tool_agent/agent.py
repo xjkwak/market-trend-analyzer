@@ -7,6 +7,39 @@ from google.adk.agents import LlmAgent
 from google.adk.models.lite_llm import LiteLlm
 import fitz  # PyMuPDF
 
+# Import the new agents using absolute imports
+try:
+    from agents.analysis import analyze_collected_results
+    from agents.summarization import generate_summary
+except ImportError:
+    # Fallback: try relative import from parent directory
+    import sys
+    import os
+    # Add the project root to the Python path
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.join(current_dir, '..', '..')
+    if project_root not in sys.path:
+        sys.path.insert(0, project_root)
+    try:
+        from agents.analysis import analyze_collected_results
+        from agents.summarization import generate_summary
+    except ImportError:
+        # If still can't import, define the functions locally
+        def analyze_collected_results(inputs: dict) -> dict:
+            """Fallback analysis function when agents module is not available."""
+            return {
+                "status": "error",
+                "error_message": "Analysis function not available - agents module not found."
+            }
+        
+        def generate_summary(content: str) -> dict:
+            """Fallback summary function when agents module is not available."""
+            return {
+                "status": "error", 
+                "error_message": "Summary function not available - agents module not found."
+            }
+
+
 def analyze_local_pdfs() -> dict:
     """Analyzes all PDF files in the local docs/ folder.
     
@@ -261,25 +294,46 @@ root_agent = LlmAgent(
     name="market_trend_coordinator_agent",
     model=LiteLlm(model="openai/gpt-4o"), # LiteLLM model string format
     description=(
-        "Coordinator agent that analyzes market trends by searching news articles, social media posts, and research papers. "
-        "Can search for news articles, X.com (Twitter) posts, and academic research papers about specific domains, industries, or topics. "
-        "Also capable of analyzing local PDF documents for comprehensive market insights."
+        "Autonomous agentic system that monitors, collects, analyzes, and summarizes emerging trends across industries "
+        "(fintech, healthcare, retail, etc.) by aggregating data from multiple sources including news articles, "
+        "social media posts, research publications, and local documents. The system provides comprehensive trend analysis "
+        "and executive summaries for strategic decision-making."
     ),
     instruction=(
-        "You are a coordinator agent that helps users analyze market trends and gather insights from multiple sources. "
-        "You can search for news articles, social media posts, and academic research papers about specific domains, industries, or topics. "
-        "You can also analyze local PDF documents for additional context. "
+        "You are an autonomous agentic system designed to monitor and analyze emerging trends across different industries. "
+        "Your goal is to collect, analyze, and summarize trend data from multiple sources to provide actionable insights. "
         ""
-        "When users ask about specific domains or topics:"
-        "- Use search_news_articles() to find relevant news articles"
-        "- Use search_x_com_posts() to find relevant social media posts"
-        "- Use search_research_papers() to find relevant academic research papers"
-        "- Use get_comprehensive_analysis() to get both news and social media analysis"
-        "- Use analyze_local_pdfs() to analyze local documents if needed"
+        "Your workflow for trend analysis:"
+        "1. COLLECT: Use data collection tools to gather information from multiple sources"
+        "   - Use search_news_articles() to find relevant news articles about the domain"
+        "   - Use search_x_com_posts() to find relevant social media posts and discussions"
+        "   - Use search_research_papers() to find academic research and publications"
+        "   - Use analyze_local_pdfs() to analyze local documents if available"
+        "   - Use get_comprehensive_analysis() to get both news and social media analysis"
         ""
-        "Provide comprehensive insights by combining information from multiple sources including news, social media, and academic research. "
-        "Be helpful, analytical, and provide actionable insights about market trends, "
-        "industry developments, emerging technologies, and research-backed opportunities."
+        "2. ANALYZE: Process collected data using the analysis function"
+        "   - Use analyze_collected_results() to combine results from news, research, and social media sources"
+        "   - Identify key keywords, topics, and patterns across all sources"
+        "   - Extract meaningful insights and trends from the aggregated data"
+        ""
+        "3. SUMMARIZE: Generate executive summaries using the summarization function"
+        "   - Use generate_summary() to create comprehensive executive-level summaries of findings"
+        "   - Highlight strategic implications and actionable insights"
+        "   - Provide recommendations based on trend analysis"
+        ""
+        "When users request trend analysis for specific domains or industries:"
+        "- First collect comprehensive data from all available sources"
+        "- Then analyze the collected data to identify patterns and insights"
+        "- Finally generate an executive summary with strategic recommendations"
+        ""
+        "Focus on providing comprehensive, data-driven insights that help users understand:"
+        "- Emerging technologies and innovations in the domain"
+        "- Market trends and industry developments"
+        "- Investment opportunities and strategic implications"
+        "- Competitive intelligence and market positioning"
+        ""
+        "Be proactive in suggesting relevant domains to analyze and provide actionable insights "
+        "that support strategic decision-making and market positioning."
     ),
-    tools=[search_news_articles, search_x_com_posts, search_research_papers, get_comprehensive_analysis, analyze_local_pdfs],
+    tools=[search_news_articles, search_x_com_posts, search_research_papers, get_comprehensive_analysis, analyze_local_pdfs, analyze_collected_results, generate_summary],
 )
