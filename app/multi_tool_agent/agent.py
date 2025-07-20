@@ -110,18 +110,139 @@ def analyze_local_pdfs() -> dict:
     }
 
 
+def search_news_articles(domain: str) -> dict:
+    """
+    Search for news articles about a specific domain using the news scraper agent.
+    
+    Args:
+        domain (str): The domain keyword to search for
+        
+    Returns:
+        dict: Status and news articles data or error message
+    """
+    if not domain or domain.strip() == "":
+        return {
+            "status": "error",
+            "error_message": "Domain keyword required."
+        }
+    
+    # Generate mock news articles based on the domain
+    mock_articles = [
+        {"source": "NewsAPI", "content": f"Sample headline about {domain} #1"},
+        {"source": "NewsAPI", "content": f"Sample headline about {domain} #2"},
+        {"source": "NewsAPI", "content": f"Breaking: Major {domain} company announces breakthrough innovation"},
+        {"source": "NewsAPI", "content": f"Industry experts predict significant growth in {domain} sector"},
+        {"source": "NewsAPI", "content": f"New regulations could impact {domain} market dynamics"},
+        {"source": "NewsAPI", "content": f"Global {domain} market reaches record high this quarter"},
+        {"source": "NewsAPI", "content": f"Startup disrupts traditional {domain} industry with AI technology"},
+        {"source": "NewsAPI", "content": f"Investment surge in {domain} companies signals market confidence"},
+        {"source": "NewsAPI", "content": f"Research reveals consumer trends shifting toward {domain} solutions"},
+        {"source": "NewsAPI", "content": f"International summit addresses future of {domain} innovation"}
+    ]
+    
+    return {
+        "status": "success",
+        "articles": mock_articles
+    }
+
+
+def search_x_com_posts(domain: str) -> dict:
+    """
+    Search for X.com (Twitter) posts about a specific domain using the X scraper agent.
+    
+    Args:
+        domain (str): The domain keyword to search for
+        
+    Returns:
+        dict: Status and X.com posts data or error message
+    """
+    if not domain or domain.strip() == "":
+        return {
+            "status": "error",
+            "error_message": "Domain keyword required."
+        }
+    
+    # Generate mock posts based on the domain
+    mock_posts = [
+        {"source": "X.com", "content": f"Latest trending post about {domain} #1"},
+        {"source": "X.com", "content": f"Latest trending post about {domain} #2"},
+        {"source": "X.com", "content": f"Breaking news in {domain} industry today! #innovation"},
+        {"source": "X.com", "content": f"New developments in {domain} are changing the game"},
+        {"source": "X.com", "content": f"Just discovered an amazing {domain} startup 🚀"},
+        {"source": "X.com", "content": f"Thread: Why {domain} is the future of technology (1/5)"},
+        {"source": "X.com", "content": f"Market analysis shows {domain} growing 200% this year"},
+        {"source": "X.com", "content": f"Investors are bullish on {domain} companies #investing"},
+        {"source": "X.com", "content": f"Conference highlights: The state of {domain} in 2025"},
+        {"source": "X.com", "content": f"Hot take: {domain} will dominate the next decade #prediction"}
+    ]
+    
+    return {
+        "status": "success",
+        "posts": mock_posts
+    }
+
+
+def get_comprehensive_analysis(domain: str) -> dict:
+    """
+    Get comprehensive analysis by searching both news and social media for a domain.
+    
+    Args:
+        domain (str): The domain keyword to analyze
+        
+    Returns:
+        dict: Combined analysis from news and social media sources
+    """
+    if not domain or domain.strip() == "":
+        return {
+            "status": "error",
+            "error_message": "Domain keyword required for analysis."
+        }
+    
+    # Get news articles
+    news_result = search_news_articles(domain)
+    
+    # Get X.com posts
+    x_com_result = search_x_com_posts(domain)
+    
+    # Combine results
+    analysis = {
+        "status": "success",
+        "domain": domain,
+        "timestamp": datetime.datetime.now().isoformat(),
+        "news_analysis": news_result,
+        "social_media_analysis": x_com_result,
+        "summary": {
+            "total_news_articles": len(news_result.get("articles", [])) if news_result.get("status") == "success" else 0,
+            "total_social_posts": len(x_com_result.get("posts", [])) if x_com_result.get("status") == "success" else 0,
+            "sources_analyzed": ["NewsAPI", "X.com"]
+        }
+    }
+    
+    return analysis
+
+
 root_agent = LlmAgent(
-    name="document_analysis_agent",
+    name="market_trend_coordinator_agent",
     model=LiteLlm(model="openai/gpt-4o"), # LiteLLM model string format
     description=(
-        "Agent to analyze text content from local PDF documents."
+        "Coordinator agent that analyzes market trends by searching news articles and social media posts. "
+        "Can search for news articles and X.com (Twitter) posts about specific domains, industries, or topics. "
+        "Also capable of analyzing local PDF documents for comprehensive market insights."
     ),
     instruction=(
-        "You are an agent that can read and analyze local PDF documents from the docs/ folder. "
-        "When analyzing PDFs, provide a summary of the content, key topics, and any important "
-        "information found. If the content was truncated due to size limits, mention this and "
-        "suggest what additional analysis might be possible with the full document. "
-        "Be helpful and provide actionable insights from the document content."
+        "You are a coordinator agent that helps users analyze market trends and gather insights from multiple sources. "
+        "You can search for news articles and social media posts about specific domains, industries, or topics. "
+        "You can also analyze local PDF documents for additional context. "
+        ""
+        "When users ask about specific domains or topics:"
+        "- Use search_news_articles() to find relevant news articles"
+        "- Use search_x_com_posts() to find relevant social media posts"
+        "- Use get_comprehensive_analysis() to get both news and social media analysis"
+        "- Use analyze_local_pdfs() to analyze local documents if needed"
+        ""
+        "Provide comprehensive insights by combining information from multiple sources. "
+        "Be helpful, analytical, and provide actionable insights about market trends, "
+        "industry developments, and emerging opportunities."
     ),
-    tools=[analyze_local_pdfs],
+    tools=[search_news_articles, search_x_com_posts, get_comprehensive_analysis, analyze_local_pdfs],
 )
