@@ -2,4 +2,5 @@ google-adk
 litellm
 openai
 python-dotenv
-PyMuPDF 
+PyMuPDF
+requests 
