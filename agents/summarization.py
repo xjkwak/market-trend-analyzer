@@ -26,9 +26,10 @@ def generate_summary(analysis_results: dict) -> dict:
     
     # Check if analysis was successful
     if analysis_results.get('status') != 'success':
+        error_msg = analysis_results.get('error_message', 'Unknown error in analysis')
         return {
             "status": "error",
-            "error_message": "Analysis results indicate failure or invalid data."
+            "error_message": f"Analysis results indicate failure: {error_msg}"
         }
     
     # Extract components from analysis results

@@ -57,10 +57,33 @@ def analyze_collected_results(inputs: dict) -> dict:
                 all_text.append(item['content'])
                 total_items += 1
     
+    # Also handle the case where inputs might be a direct result from get_comprehensive_analysis
+    if total_items == 0 and isinstance(inputs, dict):
+        # Check if this is a comprehensive analysis result
+        if 'news_analysis' in inputs and 'social_media_analysis' in inputs:
+            news_analysis = inputs.get('news_analysis', {})
+            social_analysis = inputs.get('social_media_analysis', {})
+            
+            # Extract news articles
+            if news_analysis.get('status') == 'success':
+                news_articles = news_analysis.get('articles', [])
+                for article in news_articles:
+                    if isinstance(article, dict) and 'content' in article:
+                        all_text.append(article['content'])
+                        total_items += 1
+            
+            # Extract social posts
+            if social_analysis.get('status') == 'success':
+                social_posts = social_analysis.get('posts', [])
+                for post in social_posts:
+                    if isinstance(post, dict) and 'content' in post:
+                        all_text.append(post['content'])
+                        total_items += 1
+    
     if total_items == 0:
         return {
             "status": "error",
-            "error_message": "No valid content found in inputs."
+            "error_message": "No valid content found in inputs. Expected 'news', 'research', and 'social' keys with content arrays, or a comprehensive analysis result."
         }
     
     # Combine all text for analysis

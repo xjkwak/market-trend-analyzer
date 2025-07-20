@@ -254,6 +254,52 @@ def get_comprehensive_analysis(domain: str) -> dict:
     return analysis
 
 
+def format_data_for_analysis(news_result: dict, research_result: dict, social_result: dict) -> dict:
+    """
+    Format collected data into the proper structure for analyze_collected_results function.
+    
+    Args:
+        news_result (dict): Result from search_news_articles
+        research_result (dict): Result from search_research_papers  
+        social_result (dict): Result from search_x_com_posts
+        
+    Returns:
+        dict: Properly formatted data for analysis
+    """
+    formatted_data = {
+        "news": [],
+        "research": [],
+        "social": []
+    }
+    
+    # Extract news articles
+    if news_result.get("status") == "success":
+        articles = news_result.get("articles", [])
+        for article in articles:
+            if isinstance(article, dict) and "content" in article:
+                formatted_data["news"].append(article)
+    
+    # Extract research papers
+    if research_result.get("status") == "success":
+        papers = research_result.get("papers", [])
+        for paper in papers:
+            if isinstance(paper, dict):
+                # Research papers might have 'title' instead of 'content'
+                if "title" in paper:
+                    formatted_data["research"].append(paper)
+                elif "content" in paper:
+                    formatted_data["research"].append(paper)
+    
+    # Extract social media posts
+    if social_result.get("status") == "success":
+        posts = social_result.get("posts", [])
+        for post in posts:
+            if isinstance(post, dict) and "content" in post:
+                formatted_data["social"].append(post)
+    
+    return formatted_data
+
+
 def search_research_papers(domain: str) -> dict:
     """
     Search for research papers about a specific domain using the research scraper agent.
@@ -312,19 +358,28 @@ root_agent = LlmAgent(
         "   - Use get_comprehensive_analysis() to get both news and social media analysis"
         ""
         "2. ANALYZE: Process collected data using the analysis function"
-        "   - Use analyze_collected_results() to combine results from news, research, and social media sources"
-        "   - Identify key keywords, topics, and patterns across all sources"
+        "   - IMPORTANT: Always use analyze_collected_results() with a dictionary containing 'news', 'research', and 'social' keys"
+        "   - The analyze_collected_results() function expects: {'news': [...], 'research': [...], 'social': [...]}"
+        "   - You can use format_data_for_analysis() to properly format the collected data for analysis"
+        "   - This will identify key keywords, topics, and patterns across all sources"
         "   - Extract meaningful insights and trends from the aggregated data"
         ""
         "3. SUMMARIZE: Generate executive summaries using the summarization function"
-        "   - Use generate_summary() to create comprehensive executive-level summaries of findings"
+        "   - IMPORTANT: Use generate_summary() ONLY with the output from analyze_collected_results()"
+        "   - The generate_summary() function expects the analysis results dictionary with 'status', 'keywords', 'topics', etc."
+        "   - This creates comprehensive executive-level summaries of findings"
         "   - Highlight strategic implications and actionable insights"
-        "   - Provide recommendations based on trend analysis"
         ""
         "When users request trend analysis for specific domains or industries:"
         "- First collect comprehensive data from all available sources"
-        "- Then analyze the collected data to identify patterns and insights"
-        "- Finally generate an executive summary with strategic recommendations"
+        "- Then use analyze_collected_results() with the collected data in the correct format"
+        "- Finally use generate_summary() with the analysis results to create the final summary"
+        ""
+        "IMPORTANT: The analyze_collected_results() function expects input in this format:"
+        "{'news': [{'content': '...'}], 'research': [{'title': '...'}], 'social': [{'content': '...'}]}"
+        ""
+        "And generate_summary() expects the output from analyze_collected_results() which has this format:"
+        "{'status': 'success', 'keywords': [...], 'topics': [...], 'summary_notes': '...'}"
         ""
         "Focus on providing comprehensive, data-driven insights that help users understand:"
         "- Emerging technologies and innovations in the domain"
@@ -335,5 +390,5 @@ root_agent = LlmAgent(
         "Be proactive in suggesting relevant domains to analyze and provide actionable insights "
         "that support strategic decision-making and market positioning."
     ),
-    tools=[search_news_articles, search_x_com_posts, search_research_papers, get_comprehensive_analysis, analyze_local_pdfs, analyze_collected_results, generate_summary],
+    tools=[search_news_articles, search_x_com_posts, search_research_papers, get_comprehensive_analysis, analyze_local_pdfs, analyze_collected_results, generate_summary, format_data_for_analysis],
 )
