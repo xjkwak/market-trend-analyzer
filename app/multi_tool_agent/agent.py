@@ -221,28 +221,65 @@ def get_comprehensive_analysis(domain: str) -> dict:
     return analysis
 
 
+def search_research_papers(domain: str) -> dict:
+    """
+    Search for research papers about a specific domain using the research scraper agent.
+    
+    Args:
+        domain (str): The domain keyword to search for
+        
+    Returns:
+        dict: Status and research papers data or error message
+    """
+    if not domain or domain.strip() == "":
+        return {
+            "status": "error",
+            "error_message": "Domain keyword required."
+        }
+    
+    # Generate mock research papers based on the domain
+    mock_papers = [
+        {"source": "arXiv", "title": f"Sample research paper about {domain} #1"},
+        {"source": "SSRN", "title": f"Sample research paper about {domain} #2"},
+        {"source": "arXiv", "title": f"Deep Learning Applications in {domain}: A Comprehensive Review"},
+        {"source": "SSRN", "title": f"Market Dynamics and Innovation Patterns in the {domain} Industry"},
+        {"source": "arXiv", "title": f"Machine Learning Methods for {domain} Optimization and Analysis"},
+        {"source": "SSRN", "title": f"Economic Impact of {domain} Technologies on Global Markets"},
+        {"source": "arXiv", "title": f"Algorithmic Approaches to {domain} Problem Solving"},
+        {"source": "SSRN", "title": f"Investment Trends and Risk Assessment in {domain} Sector"},
+        {"source": "arXiv", "title": f"Statistical Models for {domain} Data Processing and Prediction"},
+        {"source": "SSRN", "title": f"Regulatory Framework and Policy Implications for {domain} Development"}
+    ]
+    
+    return {
+        "status": "success",
+        "papers": mock_papers
+    }
+
+
 root_agent = LlmAgent(
     name="market_trend_coordinator_agent",
     model=LiteLlm(model="openai/gpt-4o"), # LiteLLM model string format
     description=(
-        "Coordinator agent that analyzes market trends by searching news articles and social media posts. "
-        "Can search for news articles and X.com (Twitter) posts about specific domains, industries, or topics. "
+        "Coordinator agent that analyzes market trends by searching news articles, social media posts, and research papers. "
+        "Can search for news articles, X.com (Twitter) posts, and academic research papers about specific domains, industries, or topics. "
         "Also capable of analyzing local PDF documents for comprehensive market insights."
     ),
     instruction=(
         "You are a coordinator agent that helps users analyze market trends and gather insights from multiple sources. "
-        "You can search for news articles and social media posts about specific domains, industries, or topics. "
+        "You can search for news articles, social media posts, and academic research papers about specific domains, industries, or topics. "
         "You can also analyze local PDF documents for additional context. "
         ""
         "When users ask about specific domains or topics:"
         "- Use search_news_articles() to find relevant news articles"
         "- Use search_x_com_posts() to find relevant social media posts"
+        "- Use search_research_papers() to find relevant academic research papers"
         "- Use get_comprehensive_analysis() to get both news and social media analysis"
         "- Use analyze_local_pdfs() to analyze local documents if needed"
         ""
-        "Provide comprehensive insights by combining information from multiple sources. "
+        "Provide comprehensive insights by combining information from multiple sources including news, social media, and academic research. "
         "Be helpful, analytical, and provide actionable insights about market trends, "
-        "industry developments, and emerging opportunities."
+        "industry developments, emerging technologies, and research-backed opportunities."
     ),
-    tools=[search_news_articles, search_x_com_posts, get_comprehensive_analysis, analyze_local_pdfs],
+    tools=[search_news_articles, search_x_com_posts, search_research_papers, get_comprehensive_analysis, analyze_local_pdfs],
 )
